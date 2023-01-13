@@ -40,21 +40,21 @@ To build the entire CrustyDB source code, you would run `cargo build`
 CrustyDB is set up as a workspace and various modules/components of the database are broken into separate packages/crates. To build a specific crate (for example common), you would use the following command `cargo build -p common`. Note if a package/crate depends on another crate (e.g. heapstore depends on common and txn_manager) those crates will be built as part of the process.
 
 These crates are:
-- `cli-crustty` : a command line interface client binary application that can connect and issue commands/queries to a running CrustyDB server.
+- `cli-crusty` : a command line interface client binary application that can connect and issue commands/queries to a running CrustyDB server.
 - `common` : shared data structures or logical components needed by everything in CrustyDB. this includes things like tables, errors, logical query plans, ids, some test utilities, etc.
 - `heapstore` : a storage manager for storing data in heap files. milestone `hs` is exclusively in this crate.
-- `memstore` : a poorly written storage manager that keeps everything in memory. it will persist data to files using serde on shutdown, and use these files to recreate the database state at shutdown
-- `optimizer` : a crate for generating the query execution plan and for query optimization
-- `queryexe` : responsible for executing queries. this contains the operator implementations as well as the execution code.
-- `server` : the binary crate for running a CrustyDB server. this will glue all modules (outside a client) together.
-- `txn_manager` : a near empty crate for an optional milestone to implement transactions. the use a `transaction` is embedded in many other crates, but can be safely ignored for the given milestones. There is also the use of a logical timestamp throughout many components. You can safely ignore this.
-- `utilities` : utilities for performance benchmarks that will be used by an optional milestone
+- `memstore` : a poorly written storage manager that keeps everything in memory. It will persist data to files using serde on shutdown, and use these files to recreate the database state at shutdown.
+- `optimizer` : a crate for optimizing a query plan.
+- `queryexe` : responsible for building logical query plans and executing queries. Also contains the operator implementations themselves.
+- `server` : the binary crate for running a CrustyDB server. This will glue all modules (outside a client) together.
+- `txn_manager` : a near empty crate for an optional milestone to implement transactions. The use a `transaction` is embedded in many other crates, but can be safely ignored for the given milestones. There is also the use of a logical timestamp throughout many components. You can safely ignore this.
+- `utilities` : utilities for performance benchmarks that will be used by an optional milestone.
 
-There are two other projects outside of crustydb workspace that we will use later `e2e-benchmarks` and `e2e-tests`. These are used for end-to-end testing (eg sending SQL to the server and getting a response).
+There are two other projects outside of crustydb workspace that we will use later, `e2e-benchmarks` and `e2e-tests`. These are used for end-to-end testing (e.g., sending SQL to the server and getting a response).
 
 ## Tests
 
-Most crates have tests that can be run using cargo `cargo test`. Like building you can run tests for a single crate `cargo test -p common`. Note that tests will build/compile code in the tests modules, so you may encounter build errors here that do not show up in a regular build.
+Most crates have tests that can be run using cargo `cargo test`. Like building, you can run tests for a single crate in the format`cargo test -p common`. Note that tests will build/compile code in the tests modules, so you may encounter build errors here that do not show up in a regular build.
 
 
 ### Running an ignored test
@@ -70,7 +70,7 @@ The log messages are filtered by configuring the log level to exclude messages w
 Each of these macros accept format strings similarly to println!.
 ```
 
-The logging level is set by an environmental variable, `RUST_LOG`. The easiest way to set the level is when running a cargo command you set the logging level in the same command. EG : `RUST_LOG=debug cargo run --bin server`. However, when running unit tests the logging/output is suppressed and the logger is not initialized. So if you want to use logging for a test you must:
+The logging level is set by an environmental variable, `RUST_LOG`. The easiest way to set the level is: when running a cargo command, set the logging level in the same command. EG : `RUST_LOG=debug cargo run --bin server`. When running unit tests the logging/output is suppressed by default and the logger is not initialized. So if you want to use logging for a test you must:
 - Make sure the test in question calls `init()` which is defined in `common::testutils` that initializes the logger. It can safely be called multiple times.
 - Tell cargo to not capture the output. For example, setting the level to DEBUG: `RUST_LOG=debug cargo test -- --nocapture [opt_test_name]`  **note the -- before --nocapture**
 
@@ -89,13 +89,13 @@ default, this is set to DEBUG. Feel free to change this as you see fit.
 
 This is the basic process for starting a database and connecting to it via the CLI client.
 
-1. Start a server thread
+1. Start a server thread in one terminal:
 
     ```
     $ cargo run --bin server
     ```
 
-2. Start a client
+2. Open a new terminal and start a client:
 
     ```
     $ cargo run --bin cli-crusty
