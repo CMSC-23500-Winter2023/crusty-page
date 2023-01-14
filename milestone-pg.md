@@ -49,6 +49,7 @@ A heapfile is made up of a sequence of fixed sized pages (`PAGE_SIZE` in `common
 
 The bytes that make up a page are broken into:
 - The header, which holds metadata about the page and the values it stores.
+  - Restrictions on the header's composition and size are detailed in comments in page.rs. 
 - The body, which is where the bytes for values are stored, i.e., the actual records.
 
 Pages are actually allowed to take up more than PAGE_SIZE bytes when loaded into memory. So, while your `page` struct needs to be able to be serialized or "packed" into `PAGE_SIZE` bytes to be written to disk, when you read it back, you can deserialize or "unpack" it into something larger than PAGE_SIZE, and work with that in memory. To understand why this might be useful, take a look at [this example](https://docs.google.com/document/d/1mSZulurmVLTve3MXSma2LJFvvksnZ_mfT88_XI7j9EE/edit?usp=sharing).
@@ -56,16 +57,17 @@ Pages are actually allowed to take up more than PAGE_SIZE bytes when loaded into
 Note that while values can differ in size, CrustyDB can reject any value that is larger than `PAGE_SIZE`.
 
 #### Expected Functionality, in Brief
+The following is expanded upon in subsequent sections:
 - When a value is stored in a page, it is associated with a `slot_id` that should not change. 
-- The page should always assign the lowest available `slot_id`to an insertion. Therefore, if the value associated with a given slot_id is deleted from the page, you should reuse this `slot_id` (see more on deletion below). 
-- While the location of the actual bytes of a value in a page *can* change, the slot_id should not. 
+- The page should always assign the lowest available `slot_id` to an insertion. Therefore, if the value associated with a given slot_id is deleted from the page, you should reuse this `slot_id` (see more on deletion below). 
+- While the location of the actual bytes of a value in a page *can* change, the slot_id should not. Note that this means that slot_ids are not tied to a specific location on the page either. 
 - When storing values in a page, the page should insert the value in the 'first' available space in the page. We quote first as it depends on your implementation what first actually means. 
-- If a value is deleted, that space should be reused by a later insert. 
+- If a value is deleted, that space should be reused by a later insert.
 - A page should provide an iterator to return all of the valid values stored in the page.
 
 
 ### ValueId
-Every stored value is associated with a `ValueId`. This is defined in `common::ids`. Each ValueId must specify a ContainerId (which is associated with exactly one container) and then a set of optional Id types. For this milestone, we will use PageId and SlotId for each ValueId. The data types used for these Ids are also defined in `common::ids`. 
+Every stored value is associated with a `ValueId`. This is defined in `common::ids`. Each ValueId must specify a ContainerId (which is associated with exactly one container) and then a set of optional Id types. For this milestone, we will use PageId and SlotId for each ValueId. The data types used for these Ids are also defined in `common::ids`.
 
 ```
 pub type ContainerId = u16;
@@ -77,6 +79,8 @@ pub type SlotId = u16;
 The intention is a that a ValueId <= 64 bits. This means that we know a page cannot have more than SlotId slots (`2^16`).
 
 As a note, when casting to and from another type (usize) to these Id types, you should use the type (SlotId) as the size of the IDs could hypothetically change over time. 
+
+FYI, if you're confused about containers, ContainerIDs etc., you don't really have to worry about their meaning right now, you'll work with them more in the next module.
 
 ## Suggested Steps
 This is a rough order of steps we suggest you take to complete the hs milestone. Note this is *not* exhaustive of all required tests for the milestone.
@@ -91,9 +95,10 @@ As you read through, think about what data structures/meta data you will need to
 TODO: Update tests to use both random bytes and incrementing bytes (000,111,222...DD,FF)
 
 The natural starting point is `new`, `add_value`, and `get_value`.
-New should create your structure and store some basic data in the header. With `new` working you have the basics to test the `hs_page_create` unit test: `cargo test -p heapstore hs_page_create`
+New should create your page structure and store some basic data in the header. With `new` working you have the basics to test the `hs_page_create` unit test: `cargo test -p heapstore hs_page_create`
 
 TODO: get_largest_free_contiguous_space is not ideal IMO as it doesn't specify how to handle compaction.
+
 This test requires that you add two utility functions.  `get_header_size` for getting the current header size when serialized (which will be useful for figuring out how much free space you really have) and `get_largest_free_contiguous_space` to determine the largest block of data free in the page.
 
 With new working, move onto add_value. This should enable `hs_page_simple_insert` to pass (`cargo test -p heapstore hs_page_simple_insert`). This test adds some tuples (as bytes) to the page and then checks that (1) the slot ids are assigned in order and (2) that the largest free space and header size are aligned.
@@ -112,7 +117,7 @@ The last component of the page is writing an iterator to 'walk' through all vali
 
 After completing the iterator all required functionality in the page should be complete and you can run all the tests in the file by running `cargo test -p heapstore hs_page_` Ensure that you did not break any tests! Congrats!
 
-## Spae Use/Reclamation Example
+## Space Use/Reclamation Example
 
 
 Deleted space should be used again by the page, but there is no requirement as to when. In other words you should never decline an add_value when the free space does exist on the page.
