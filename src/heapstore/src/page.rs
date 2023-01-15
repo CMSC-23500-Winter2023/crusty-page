@@ -18,7 +18,9 @@ const BYTES_PER_LINE: usize = 40;
 /// PAGE_SIZE. In the header, you are allowed to allocate 8 bytes for general page metadata and
 /// 6 bytes per value/entry/slot stored. For example a page that has stored 3 values, can use
 /// up to 8+3*6=26 bytes, leaving the rest (PAGE_SIZE-26 for data) when serialized.
-/// You do not need reclaim header information for a value inserted (eg 6 bytes per value ever inserted)
+/// If you delete a value, you do not need reclaim header space the way you must reclaim page
+/// body space. E.g., if you insert 3 values then delete 2 of them, your header can remain 26 
+/// bytes & subsequent inserts can simply add 6 more bytes to the header as normal.
 /// The rest must filled as much as possible to hold values.
 pub(crate) struct Page {
     /// The data for data
