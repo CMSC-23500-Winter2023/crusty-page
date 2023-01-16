@@ -4,7 +4,7 @@ use std::convert::TryInto;
 use std::fmt;
 use std::mem;
 
-// This is the max type for the size of the page.
+// Type to hold any value samller than the size of a page.
 // A page will never be bigger than this type so you can store offsets with
 // this type. Note you will likely need to cast to usize as this type is how Rust
 // indexes arrays.
@@ -13,9 +13,8 @@ pub type Offset = u16;
 const BYTES_PER_LINE: usize = 40;
 
 
-/// The struct for a page. Note this can hold more elements/meta data when created,
-/// but it must be able to be packed/serialized/marshalled into the data array of size
-/// PAGE_SIZE. In the header, you are allowed to allocate 8 bytes for general page metadata and
+/// Page struct. This must occupy not more than PAGE_SIZE when serialized.
+/// In the header, you are allowed to allocate 8 bytes for general page metadata and
 /// 6 bytes per value/entry/slot stored. For example a page that has stored 3 values, can use
 /// up to 8+3*6=26 bytes, leaving the rest (PAGE_SIZE-26 for data) when serialized.
 /// If you delete a value, you do not need reclaim header space the way you must reclaim page
@@ -68,7 +67,7 @@ impl Page {
         panic!("TODO milestone pg");
     }
 
-    /// Create a new page from the byte array.
+    /// Deserialize bytes into Page
     ///
     /// HINT to create a primitive data type from a slice you can use the following
     /// (the example is for a u16 type and the data store in little endian)
@@ -77,7 +76,7 @@ impl Page {
         panic!("TODO milestone pg");
     }
 
-    /// Convert a page into bytes. This must be same size as PAGE_SIZE.
+    /// Serialize page into a byte array. This must be same size as PAGE_SIZE.
     /// We use a Vec<u8> for simplicity here.
     ///
     /// HINT: To convert a vec of bytes using little endian, use

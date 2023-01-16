@@ -18,7 +18,7 @@ pub mod ids;
 pub mod table;
 pub mod testutil;
 
-/// How big each page is
+/// Page size in bytes
 pub const PAGE_SIZE: usize = 4096;
 // How many pages a buffer pool can hold
 pub const PAGE_SLOTS: usize = 50;
