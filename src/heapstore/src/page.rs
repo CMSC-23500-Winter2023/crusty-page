@@ -131,29 +131,13 @@ impl Page {
     }
 }
 
-/// The (consuming) iterator struct for a page.
-/// This should iterate through all valid values of the page.
-/// See https://stackoverflow.com/questions/30218886/how-to-implement-iterator-and-intoiterator-for-a-simple-struct
-pub struct PageIter<'a> {
-    //TODO milestone pg
-     
-}
+
 
 pub struct PageIntoIter {
     //TODO milestone pg
      
 }
 
-/// The implementation of the (consuming) page iterator.
-/// This should return the values in slotId order (ascending)
-impl<'a> Iterator for PageIter<'a> {
-    // Each item returned by the iterator is the bytes for the value and the slot id.
-    type Item = (Vec<u8>, SlotId);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        panic!("TODO milestone pg");
-    }
-}
 
 /// The implementation of the (consuming) page iterator.
 /// This should return the values in slotId order (ascending)
@@ -166,17 +150,6 @@ impl Iterator for PageIntoIter {
     }
 }
 
-/// The implementation of IntoIterator which allows an iterator to be created
-/// for a page. This should create the PageIter struct with the appropriate state/metadata
-/// on initialization.
-impl<'a> IntoIterator for &'a Page {
-    type Item = (Vec<u8>, SlotId);
-    type IntoIter = PageIter<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        panic!("TODO milestone pg");
-    }
-}
 
 /// The implementation of IntoIterator which allows an iterator to be created
 /// for a page. This should create the PageIter struct with the appropriate state/metadata
@@ -822,7 +795,9 @@ mod tests {
             };
         }
         // let (check_vals, check_slots): (Vec<Vec<u8>>, Vec<SlotId>) = p.into_iter().map(|(a, b)| (a, b)).unzip();
-        let mut check_vals: Vec<Vec<u8>> = (&p).into_iter().map(|(a, _)| a).collect();
+        let bytes = p.to_bytes();
+        let p_clone = Page::from_bytes(&bytes);
+        let mut check_vals: Vec<Vec<u8>> = p_clone.into_iter().map(|(a, _)| a).collect();
         assert!(compare_unordered_byte_vecs(&stored_vals, check_vals));
         trace!("\n==================\n PAGE LOADED - now going to delete to make room as needed \n =======================");
         // Delete and add remaining values until goes through all. Should result in a lot of random deletes and adds.
@@ -836,7 +811,9 @@ mod tests {
                     Some(new_slot) => {
                         stored_slots.push(new_slot);
                         stored_vals.push(bytes.clone());
-                        check_vals = (&p).into_iter().map(|(a, _)| a).collect();
+                        let bytes = p.to_bytes();
+                        let p_clone = Page::from_bytes(&bytes);
+                        check_vals = p_clone.into_iter().map(|(a, _)| a).collect();
                         assert!(compare_unordered_byte_vecs(&stored_vals, check_vals));
                         trace!("Added new value ({}) {:?}", new_slot, stored_slots);
                         added = true;

@@ -113,7 +113,7 @@ Next implement the function `delete_value` which should free up the bytes previo
 Next write the methods to create the byte vector from a page (`to_bytes`) and the method to create a page from a reference/borrow to array of bytes. You cannot rely on any serde library for this and must ensure that the data fits into `PAGE_SIZE`. Some hints are available in the function comments. With these functions working `hs_page_size` and `hs_page_simple_byte_serialize` should pass.
 
 ### Page Iterator
-The last component of the page is writing an iterator to 'walk' through all valid values stored in a page. This is a consuming iterator which will move/take ownership of the page. You will want to fill in the struct `PageIter` to hold the metadata for the iterator, the `next` function in the `impl Iterator for PageIter`, and `into_iter` in `impl IntoIterator for Page` that creates the iterator from a page. With these functions `hs_page_iter` should pass.
+The last component of the page is writing an iterator to 'walk' through all valid values stored in a page. This is a consuming iterator which will move/take ownership of the page. You will want to fill in the struct `PageIter` to hold the metadata for the iterator, the `next` function in the `impl Iterator for PageIntoIter`, and `into_iter` in `impl IntoIterator for Page` that creates the iterator from a page. With these functions `hs_page_iter` should pass.
 
 After completing the iterator all required functionality in the page should be complete and you can run all the tests in the file by running `cargo test -p heapstore hs_page_` Ensure that you did not break any tests! Congrats!
 
