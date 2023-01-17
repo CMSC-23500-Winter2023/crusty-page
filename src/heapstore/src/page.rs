@@ -4,10 +4,9 @@ use std::convert::TryInto;
 use std::fmt;
 use std::mem;
 
-// Type to hold any value samller than the size of a page.
-// A page will never be bigger than this type so you can store offsets with
-// this type. Note you will likely need to cast to usize as this type is how Rust
-// indexes arrays.
+// Type to hold any value smaller than the size of a page.
+// We choose u16 because it is sufficient to represent any slot that fits in a 4096-byte-sized page. 
+// Note that you will need to cast Offset to usize if you want to use it to index an array.
 pub type Offset = u16;
 // For debug
 const BYTES_PER_LINE: usize = 40;
