@@ -42,7 +42,6 @@ The logging level is set by an environmental variable, `RUST_LOG`. The easiest w
  - Make sure the test in question calls `init()` which is defined in `common::testutils` that initializes the logger. It can safely be called multiple times.
  - Tell cargo to not capture the output. For example, setting the level to DEBUG: `RUST_LOG=debug cargo test -- --nocapture [opt_test_name]`  **note the -- before --nocapture**
 
-
 ### Page
 
 #### Page Size
@@ -83,6 +82,10 @@ The intention is a that a ValueId <= 64 bits. This means that we know a page can
 As a note, when casting to and from another type (usize) to these Id types, you should use the type (SlotId) as the size of the IDs could hypothetically change over time. 
 
 FYI, if you're confused about containers, ContainerIDs etc., you don't really have to worry about their meaning right now, you'll work with them more in the next module.
+
+### Debugging
+
+To aid in debugging we provide a custom implementation of `Debug` for `Page` in `page.rs` that lets you print the contents of a page in a readable way. This is described in detail in `debugging-guide.md`.
 
 ## Suggested Steps
 This is a rough order of steps we suggest you take to complete the hs milestone. Note this is *not* exhaustive of all required tests for the milestone.
